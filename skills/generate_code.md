@@ -28,6 +28,8 @@ Baca juga `.agent/DESIGN.md` sebelum mulai menulis kode.
 - Cover: happy path, validasi gagal, unauthorized, forbidden, edge case
 
 ### 4. Jalankan Test (Antigravity Eksekusi Mandiri)
+Jalankan perintah test yang sesuai dengan stack project sekarang tanpa menunggu konfirmasi user.
+
 ```bash
 # Sesuaikan dengan stack yang digunakan:
 bun test         # Bun
