@@ -2,13 +2,15 @@
 > Digunakan oleh: @reviewer
 
 ## Objective
-Review objektif. Model berbeda dari @engineer — ini disengaja agar tidak bias.
-Approval buta dilarang keras.
+Review objektif dan menyeluruh.
+@reviewer menggunakan model beda vendor dari @engineer — ini disengaja untuk menghilangkan bias.
+Approval tanpa dasar dilarang keras.
 
 ---
 
 ## Trigger
-Dipanggil setelah User mengirim link PR dan paste output test.
+Dipanggil saat user mengirim: "review PR [URL]"
+Antigravity menjalankan test secara mandiri untuk mendapatkan log terbaru.
 
 ---
 
@@ -16,25 +18,27 @@ Dipanggil setelah User mengirim link PR dan paste output test.
 
 ### ✅ Functional Correctness
 - [ ] Semua acceptance criteria di issue terpenuhi?
-- [ ] Semua test scenarios yang ditentukan di issue ada dan passed di log?
-- [ ] Ada test yang dilewati atau tidak dijalankan?
+- [ ] Semua test scenarios yang tercantum di issue ada di test file?
+- [ ] Test log bersih: 0 failed, 0 skipped?
+- [ ] Ada test state cleanup di awal setiap suite?
 
 ### ✅ Security
-- [ ] Semua endpoint sensitif dilindungi middleware yang tepat?
+- [ ] Semua endpoint sensitif dilindungi middleware auth?
 - [ ] Input validation ada di setiap endpoint yang menerima data?
 - [ ] Tidak ada raw query tanpa parameter binding?
-- [ ] Tidak ada data sensitif yang di-expose di response?
+- [ ] Tidak ada data sensitif (password hash, token) di-expose di response?
 
 ### ✅ Code Quality
-- [ ] Tidak ada N+1 query? (gunakan eager loading)
-- [ ] DB Transaction digunakan di semua operasi yang melibatkan lebih dari 1 tabel?
-- [ ] Tidak ada duplikasi logic?
-- [ ] Tidak ada dead code atau komentar yang tidak relevan?
+- [ ] Tidak ada N+1 query? (gunakan eager loading / join)
+- [ ] DB Transaction digunakan di semua operasi multi-tabel?
+- [ ] Tidak ada duplikasi logic? (DRY)
+- [ ] Tidak ada dead code atau placeholder yang tidak diimplementasikan?
 
 ### ✅ Consistency
 - [ ] Response format mengikuti standard di `DESIGN.md`?
 - [ ] Naming convention konsisten dengan codebase?
-- [ ] Struktur folder mengikuti aturan di `DESIGN.md`?
+- [ ] Struktur folder mengikuti arsitektur di `DESIGN.md`?
+- [ ] Handoff sudah ditulis di `.agent/handoffs/`?
 
 ---
 
@@ -42,34 +46,38 @@ Dipanggil setelah User mengirim link PR dan paste output test.
 
 ### Jika APPROVED
 ```
-✅ REVIEW APPROVED
-Semua [N] acceptance criteria terpenuhi.
-Test log bersih: [N] passed, 0 failed.
+✅ REVIEW APPROVED — Issue #[N]: [Nama Fitur]
 
-Instruksi User — merge PR:
+Semua [N] acceptance criteria terpenuhi.
+Test log: [N] passed, 0 failed, 0 skipped.
+Checklist: semua poin clear.
+```
+
+Antigravity eksekusi merge:
+```bash
 gh pr merge [nomor] --merge
 ```
 
 ### Jika REVISION NEEDED
 ```
-⚠️ REVISION NEEDED
-[N] masalah ditemukan:
+⚠️ REVISION NEEDED — [N] masalah ditemukan:
 
-1. `path/to/file.ext` baris [N]
+1. `path/to/file.ts` baris [N]
+   Masalah: [deskripsi eksak masalahnya]
+   Solusi: [instruksi perbaikan spesifik — apa yang harus diubah]
+
+2. `path/to/file.ts`
    Masalah: [deskripsi eksak]
    Solusi: [instruksi perbaikan spesifik]
 
-2. `path/to/file.ext`
-   Masalah: [deskripsi eksak]
-   Solusi: [instruksi perbaikan spesifik]
-
-@engineer: Perbaiki poin di atas.
-Setelah selesai, minta User jalankan ulang test dan paste log baru ke chat ini.
+@engineer: Perbaiki semua poin di atas.
+Setelah selesai, jalankan ulang test dan sampaikan PR yang sama untuk di-review kembali.
 ```
 
 ---
 
 ## Larangan
-- Tidak approve tanpa melihat test output dari User
+- Tidak approve tanpa test log yang bersih
 - Tidak menulis kode perbaikan
-- Tidak melewati checklist meskipun perubahan terlihat kecil
+- Tidak melewati satu pun poin checklist meskipun perubahan tampak kecil
+- Tidak approve jika handoff belum ada di `.agent/handoffs/`

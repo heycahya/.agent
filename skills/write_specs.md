@@ -2,80 +2,93 @@
 > Digunakan oleh: @arsitek
 
 ## Objective
-Ubah prompt dari @orchestrator menjadi blueprint teknis yang bisa langsung dieksekusi @engineer.
+Ubah instruksi dari Orchestrator menjadi blueprint teknis yang bisa langsung dieksekusi @engineer.
+Output harus cukup detail sehingga @engineer tidak perlu bertanya balik.
 
 ---
 
 ## Steps
 
 ### 1. Baca Input
-- Baca prompt yang di-paste User
-- Baca `DESIGN.md` untuk stack dan conventions
-- Baca handoff terbaru di `handoffs/` untuk konteks
+- Baca instruksi yang di-paste user
+- Baca `.agent/DESIGN.md` untuk stack dan conventions
+- Baca handoff terbaru di `.agent/handoffs/` untuk konteks progress
 
-### 2. Tentukan Nomor
-Gunakan nomor yang sama dengan prompt yang diterima.
-(prompt-99 → issue-99, prompt-98 → issue-98)
+### 2. Tentukan Nomor Issue
+- Cek nomor tertinggi yang sudah ada di `.agent/artifacts/issues/`
+- Gunakan nomor berikutnya (01 → 02 → 03 ...)
+- Jika folder masih kosong, mulai dari 01
 
 ### 3. Tulis Issue Spec
-Simpan ke `artifacts/issues/[N]-[slug].md`:
+Simpan ke `.agent/artifacts/issues/[N]-[slug].md`:
 
 ```markdown
 # Issue [N]: [Nama Fitur]
 
+## Tujuan
+[Apa yang ingin dicapai dengan fitur ini — 2-3 kalimat]
+
 ## Tech Stack
-Framework dan versi eksak yang digunakan.
+[Framework, library, dan versi eksak yang digunakan untuk fitur ini]
 
 ## File Tree
 File yang akan dibuat atau dimodifikasi:
-- `path/to/file.ext` — [dibuat | dimodifikasi] — keterangan singkat
+- `path/to/file.ts` — [dibuat | dimodifikasi] — keterangan singkat
 
-## Data Schema
-Tabel baru atau perubahan kolom (jika ada):
-- Tabel `nama`: kolom1 (tipe), kolom2 (tipe)
+## Skema Database (jika ada)
+Tabel baru atau perubahan kolom:
+- Tabel `nama`: kolom (tipe, constraint), kolom (tipe, constraint)
+Migration: [instruksi eksak jika ada]
 
 ## API Endpoints
-| Method | URI | Middleware | Deskripsi |
-|--------|-----|------------|-----------|
+| Method | URI             | Middleware | Request Body       | Response           |
+|--------|-----------------|------------|--------------------|--------------------| 
+| POST   | /api/[resource] | auth       | { field: type }    | { success, data }  |
 
 ## Logic Notes
-- Hal penting untuk implementasi
-- Edge case yang harus ditangani
-- Pattern yang wajib diikuti (DB Transaction, lockForUpdate, dll)
+- [Hal penting untuk implementasi]
+- [Edge case yang harus ditangani]
+- [Pattern wajib: DB Transaction, eager loading, dll]
+- [Dependency dengan fitur lain]
 
 ## Test Scenarios
-Skenario yang harus ditulis dan diverifikasi:
-- [ ] Happy path — HTTP 200/201
-- [ ] Validasi gagal — HTTP 422
-- [ ] Akses ditolak role salah — HTTP 403
-- [ ] Edge case spesifik
+Semua skenario ini harus ada dan passed:
+- [ ] Happy path — [deskripsi] → HTTP [kode]
+- [ ] Validasi gagal — [field apa] invalid → HTTP 422
+- [ ] Unauthorized — tanpa token → HTTP 401
+- [ ] Forbidden — role salah → HTTP 403
+- [ ] Edge case — [deskripsi spesifik]
 
 ## Acceptance Criteria
 - [ ] Semua endpoint berjalan sesuai spesifikasi di atas
-- [ ] Semua test scenarios passed 100%
+- [ ] Semua test scenarios di atas passed 100%
 - [ ] Tidak ada regresi pada test yang sudah ada
+- [ ] Handoff ditulis sebelum PR dibuat
 ```
 
-### 4. Berikan Perintah ke User
-
-```
-✅ Issue spec siap di: .agents/artifacts/issues/[N]-[slug].md
-
+### 4. Antigravity Eksekusi Langsung
 Jalankan perintah berikut:
+```bash
+# Submit ke GitHub Issues:
+gh issue create --title "feat: [nama fitur]" --body-file .agent/artifacts/issues/[N]-[slug].md
 
-# 1. Submit ke GitHub:
-gh issue create --title "feat: [nama fitur]" --body-file .agents/artifacts/issues/[N]-[slug].md
-
-# 2. Setelah issue terbuat, buat branch:
+# Buat branch setelah issue terbuat:
 git checkout -b feature/[nama-fitur]
+```
 
-# 3. Pindah ke chat @engineer dan kirim:
-#    "kerjakan github issue [URL issue]"
+Kemudian sampaikan ke user:
+```
+✅ Issue [N] siap: [URL GitHub Issue]
+Branch: feature/[nama-fitur]
+
+Lanjut ke @engineer dan kirim:
+"kerjakan github issue [URL issue]"
 ```
 
 ---
 
 ## Larangan
 - Tidak menulis kode aplikasi
-- Nomor harus sama dengan nomor prompt yang diterima
-- Tidak modifikasi `handoffs/` atau `prompts/`
+- Tidak skip bagian Test Scenarios dan Acceptance Criteria
+- Nomor harus sequential, tidak boleh duplikat atau loncat
+- Tidak modifikasi `handoffs/`
